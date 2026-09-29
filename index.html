@@ -135,7 +135,7 @@ const GAMES=[
 {id:1,name:"Food Adventure",sub:"I like cakes.",kind:'build',inst:"Look at the emoji. Build the sentence. Some words are extra!",hint:"Try again. Check the emoji. Do we need a/an before this food?",ok:"Yes! The extra words stay outside: no a/an here.",shuf:1,
  items:()=>FD.map(([f,n,m])=>{const v=m=='dont'?["don't","like"]:[m];return{w:["I",...v,n],d:[/^[aeiou]/i.test(f)?'an':'a',...["like","love","don't"].filter(x=>!v.includes(x))],food:f,name:f,mood:m}})},
 {id:2,name:"Object Builder",sub:"I have got a book.",kind:'build',img:'objects',inst:"Build the sentence with have got.",hint:"Check the order: I have got + a + object. Use a for each object.",ok:"Great! Here we DO use a: I have got a book.",
- items:()=>rows([["I have got a pen"],["I have got a pencil~case"],["I haven't got a tablet"],["I have got a mobile~phone"],["I have got a camera and a mobile~phone"],["I have got a book, a pen and a pencil~case"],["I haven't got a ruler, a rubber and a tablet"]])
+ items:()=>rows([["I have got a pen"],["I have got a pencil~case"],["I haven't got a tablet"],["I have got a mobile~phone"],["I have got a camera and a mobile~phone"],["I have got a book, a pen and a pencil~case"],["I haven't got a tablet"]])
   .map(it=>({...it, objs:it.w.map(t=>OBJ_IMG[t.replace(/[,.]/g,'')]).filter(Boolean)}))},
 {id:3,name:"Bedroom Detective",sub:"Have you got a bed?",kind:'mc',img:'bedroom',inst:"Look at the bedroom. Answer the question.",n:8,shuf:1,items:()=>mcYN()},
 {id:4,name:"My School Bag",sub:"Speak English!",kind:'speak',img:'schoolBag',items:()=>[{t:["pen"]},{t:["ruler"]},{t:["book","notebook"]},{t:["pencil case","eraser"]},{t:["water bottle"]},{t:["pencils","ruler","pen"]}]},
