@@ -66,7 +66,10 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--org);outline-of
 input[type=text]{width:100%;max-width:560px;font:inherit;font-size:1.2rem;padding:.6em 1em;border-radius:14px;border:3px solid var(--teal);background:#fff;color:#173b42}
 .dsent{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;justify-content:center;font-family:Fredoka,Nunito,system-ui,sans-serif;font-size:clamp(1.1rem,3.6vw,1.6rem)}
 .gap{min-width:3.4em;padding:.3em .7em;border:3px dashed var(--teal);border-radius:12px;background:var(--bg1)}.gap.bad{animation:shake .4s;border-color:var(--red)}.gap.good{border-style:solid;border-color:var(--grn);background:#d8f4d8;color:#173b42}
-.spr{aspect-ratio:1;background-repeat:no-repeat;background-color:#fff;border-radius:16px;border:2px solid var(--line)}.cues{display:flex;gap:16px;align-items:center;justify-content:center}
+.cues{display:flex;gap:16px;align-items:center;justify-content:center;flex-wrap:nowrap}
+.cues img{display:block;object-fit:contain}
+.cue-emoji{height:clamp(60px,18vw,100px);width:auto}
+.cue-food{height:clamp(90px,28vw,150px);width:auto}
 .bagwrap{position:relative;display:inline-block;line-height:0;max-width:100%}.bagwrap img{max-width:100%;max-height:44vh;border:0;border-radius:0;filter:drop-shadow(0 6px 8px #0003)}
 .arw{position:absolute;width:max(30px,9%);transform:translate(-50%,-100%);animation:bob 1s ease-in-out infinite;filter:drop-shadow(0 2px 2px #0005)}
 @keyframes bob{50%{margin-top:-9px}}
@@ -92,11 +95,9 @@ const ASSETS={
   backpackAudio:"assets/backpack-question.mp3",   // your recording of: What have you got in your backpack?
   menuBg:"assets/after introduction.jpeg"
 };
-/* ============ FOODS GRID: how the foods image is cut into pictures ============
-   cols/rows = size of the grid. [col,row] starts at 0 (top-left). Edit these once the real image is checked. */
-const FOODS={cols:5,rows:4,
- cell:{"cake":[0,0],"apple":[1,0],"banana":[2,0],"egg":[3,0],"milkshake":[4,0],"strawberry":[0,1],"strawberry milkshake":[1,1],"chicken":[2,1],"rice":[3,1],"beans":[4,1],"tea":[0,2],"French fries":[1,2],"ice cream":[2,2],"pizza":[3,2],"sandwich":[4,2],"chocolate":[0,3]},
- mood:{like:[1,3],love:[2,3],dont:[4,3]}};   // [col,row] of the emoji for: I like / I love / I don't like
+/* ============ FOOD IMAGES: one transparent-background PNG per food/mood in assets/foods/ ============ */
+const FOOD_IMG={"cake":"cake","apple":"apple","banana":"banana","egg":"egg","milkshake":"milkshake","strawberry":"strawberry","strawberry milkshake":"strawberry-milkshake","chicken":"chicken","rice":"rice","beans":"beans","tea":"tea","French fries":"french-fries","ice cream":"ice-cream","pizza":"pizza","sandwich":"sandwich","chocolate":"chocolate"};
+const MOOD_IMG={like:"mood-like",love:"mood-love",dont:"mood-dont"};
 /* ============ BEDROOM ANSWER KEY: edit to match the real bedroom picture (1 = visible, 0 = not) ============ */
 const BEDROOM=[["a bed",1],["an armchair",1],["books",1],["a window",1],["a teddy bear",1],["a rug",1],["trainers",1],["a stereo",0],
 ["a TV",0],["a piano",0],["a bike",0],["a guitar",0],["a computer",0],["a blue wall",0],["a dog",0],["a sofa",0]];
@@ -137,11 +138,8 @@ const GAMES=[
 {id:6,name:"Bonus: Question Lab",sub:"Has the hippo got…?",kind:'mix',hint:"Remember: Has + animal + got…? / Have + you + got…?",ok:"Perfect question!",items:()=>[...QB,...QT]}];
 
 const FD=[["cake","cakes","like"],["apple","apples","love"],["banana","bananas","like"],["egg","eggs","dont"],["milkshake","milkshakes","love"],["strawberry","strawberries","like"],["strawberry milkshake","strawberry~milkshakes","love"],["chicken","chicken","like"],["rice","rice","like"],["beans","beans","dont"],["tea","tea","dont"],["French fries","French~fries","love"],["ice cream","ice~cream","love"],["pizza","pizza","like"],["sandwich","sandwiches","dont"],["chocolate","chocolate","love"]];
-let FOODS_OK=null;{const p=new Image();p.onload=()=>FOODS_OK=1;p.onerror=()=>FOODS_OK=0;p.src=ASSETS.foods}
 const MOODTXT={like:"like",love:"love",dont:"don't like"};
-const spr=(c,sz)=>`<div class="spr" style="width:${sz};background-image:url(${ASSETS.foods});background-size:${FOODS.cols*100}% ${FOODS.rows*100}%;background-position:${FOODS.cols>1?c[0]/(FOODS.cols-1)*100:0}% ${FOODS.rows>1?c[1]/(FOODS.rows-1)*100:0}%"></div>`;
-function cues(it){if(FOODS_OK!==1)return `<div class="ph">Foods image not added yet.<br>Put it at <b>${ASSETS.foods}</b></div><div class="row"><span class="tag">${it.name}</span><span class="tag">${MOODTXT[it.mood]}</span></div>`;
- const m=FOODS.mood[it.mood];return `<div class="cues">${spr(FOODS.cell[it.food],'clamp(90px,28vw,150px)')}${m?spr(m,'clamp(60px,18vw,100px)'):`<span class="tag">${MOODTXT[it.mood]}</span>`}</div>`}
+function cues(it){return `<div class="cues"><img class="cue-emoji" src="assets/foods/${MOOD_IMG[it.mood]}.png" alt="${MOODTXT[it.mood]}"><img class="cue-food" src="assets/foods/${FOOD_IMG[it.food]}.png" alt="${it.food}"></div>`}
 let G,B;
 function intro(){G=null;app.innerHTML=`<div class="intro"><img src="${ASSETS.introduction}" alt="Grammar Adventure 1"><div class="go"><button class="btn big" onclick="menu()">PLAY</button></div></div>`}
 function menu(){G=null;app.innerHTML=`<div class="menu-bg"></div><div class="wrap"><div class="mh"><h1>Choose your adventure</h1><button class="ghost" onclick="intro()">Home</button></div><div class="grid">${GAMES.map(g=>{const m=mem[g.id];return `<button class="card c${g.id}" onclick="start(${g.id})"><span class="num">${g.id==6?'★':g.id}</span><b>${g.name}</b><em>${g.sub}</em><span class="st">${stars(m?m.s:0)}</span>${m?`<em>Best: ${m.b}</em>`:''}</button>`}).join('')}</div></div>`}
