@@ -129,7 +129,7 @@ const AB=[["I've got a book.","I've got a pen.",0,"I've got a book and a pen."],
 const QB=[["Yes, it has. The hippo has got a big head.","Has the hippo got a~big~head ?"],["No, it hasn't. The snake hasn't got a long tail.","Has the snake got a~long~tail ?"],
 ["Yes, it has. The alligator has got sharp teeth.","Has the alligator got sharp~teeth ?"],["I've got a white T-shirt.","Have you got a~white~T-shirt ?"]]
 .map(r=>({k:'build',p:r[0],w:r[1].split(' '),d:[]}));
-const QT=[{k:'type',p:"No, it hasn't. The monkey hasn't got long legs.",a:"has the monkey got long legs"},{k:'type',p:"I've got a camera.",a:"have you got a camera"}];
+const QT=[{k:'sayq',p:"No, it hasn't. The monkey hasn't got long legs.",a:"has the monkey got long legs"},{k:'sayq',p:"I've got a camera.",a:"have you got a camera"}];
 
 const GAMES=[
 {id:1,name:"Food Adventure",sub:"I like cakes.",kind:'build',inst:"Look at the emoji. Build the sentence. Some words are extra!",hint:"Try again. Check the emoji. Do we need a/an before this food?",ok:"Yes! The extra words stay outside: no a/an here.",shuf:1,
@@ -152,7 +152,7 @@ function menu(){G=null;app.innerHTML=`<div class="menu-bg"></div><div class="wra
 function start(id,skip){const g=GAMES.find(x=>x.id==id);if(g.pre&&!skip)return pre(g);let it=g.items();if(g.shuf)it=sh(it);if(g.n)it=it.slice(0,g.n);G={g,i:0,pts:0,items:it};step()}
 function pre(g){app.innerHTML=`<div class="wrap"><div class="top"><button class="ghost" onclick="menu()">← Menu</button><div class="chip">5 · ${g.name}</div></div><main class="stage"><h2>Two little words</h2><div class="opts"><div class="card c2"><b>AND</b><span>AND adds information.</span><em>I've got a book and a pen.</em></div><div class="card c5"><b>BUT</b><span>BUT shows a difference.</span><em>I like rice, but I don't like beans.</em></div></div><button class="btn" onclick="start(5,1)">Let's play</button></main></div>`}
 function frame(h){app.innerHTML=`<div class="wrap"><div class="top"><button class="ghost" onclick="menu()">← Menu</button><div class="chip">${G.g.id==6?'★':G.g.id} · ${G.g.name}</div><div class="score">★ ${G.pts}</div></div><div class="bar"><i style="width:${G.i/G.items.length*100}%"></i></div><main class="stage">${h}</main></div>`}
-function step(){if(G.i>=G.items.length)return done();G.t=0;const it=G.items[G.i];({dnd:sDnd,build:sBuild,mc:sMC,type:sType,speak:sSpeak}[it.k||G.g.kind])(it)}
+function step(){if(G.i>=G.items.length)return done();G.t=0;const it=G.items[G.i];({dnd:sDnd,build:sBuild,mc:sMC,type:sType,speak:sSpeak,sayq:sSpeakQ}[it.k||G.g.kind])(it)}
 const nextBtn=()=>`<button class="btn" onclick="G.i++;step()">${G.i+1>=G.items.length?'Finish':'Next'}</button>`;
 const award=()=>{G.pts+=G.t?50:100};
 function done(){const max=G.items.length*100,p=G.pts/max,s=p>=.8?3:p>=.5?2:1,m=mem[G.g.id]||{b:0,s:0};mem[G.g.id]={b:Math.max(m.b,G.pts),s:Math.max(m.s,s)};save();const nx=G.g.id<6?G.g.id+1:0;
@@ -216,5 +216,22 @@ function attempt(list){if(G.t>=3||$('#nx').innerHTML)return;const it=G.items[G.i
  if(G.t==1)fb.textContent=heard+"Almost, try again.";
  else if(G.t==2)fb.textContent=heard+(j.start?"Look at the arrows. Say all the things!":"Try starting with: I have got…");
  else{G.pts+=10;const l=it.t.map(say);fb.textContent=`Here is an example: “I have got ${l.length>1?l.slice(0,-1).join(', ')+' and '+l[l.length-1]:l[0]}.” (+10)`;$('#nx').innerHTML=nextBtn()}}
+
+/* ---- Bonus: Question Lab - say the question (same speech logic/style as Game 4) ---- */
+const nzq=s=>nz(s.replace(/i['’]ve/gi,'i have').replace(/\bive\b/gi,'i have'));
+function sSpeakQ(it){G.kbd=G.kbd||!SR;frame(`<h2>Now say the question.</h2><div class="prompt">${it.p}</div>
+${G.kbd?`${SR?'':'<div class="fb">Speech practice needs a compatible browser like Chrome or Edge. You can type your answer instead.</div>'}<input type="text" id="ti" autocomplete="off" placeholder="Type your question…" onkeydown="if(event.key==='Enter')typedQ()"><button class="btn" onclick="typedQ()">Check</button>`:`<button class="mic" id="mic" onclick="listenQ()" aria-label="Speak">🎤</button><div class="hintx">Tap the microphone and say the question.</div><button class="ghost" onclick="G.kbd=1;sSpeakQ(G.items[G.i])">Type instead</button>`}
+<div class="fb" id="fb" role="status"></div><div class="row" id="nx"></div>`)}
+function listenQ(){const r=new SR();r.lang='en-US';r.maxAlternatives=3;const m=$('#mic');m.classList.add('on');$('#fb').className='fb';$('#fb').textContent='Listening…';
+ r.onresult=e=>attemptQ([...e.results[0]].map(x=>x.transcript));
+ r.onerror=e=>{$('#fb').textContent=/allowed/.test(e.error)?'The microphone is blocked. Tap "Type instead".':"I didn't hear you. Tap the microphone and try again."};r.onend=()=>m.classList.remove('on');try{r.start()}catch(e){}}
+const typedQ=()=>{const v=$('#ti').value.trim();if(v)attemptQ([v])};
+function attemptQ(list){if(G.t>=3||$('#nx').innerHTML)return;const it=G.items[G.i],fb=$('#fb');fb.className='fb';
+ if(list.some(t=>nzq(t)==it.a)){const p=[100,60,30][G.t];G.pts+=p;fb.className='fb ok';fb.textContent=pick(["Very good!","Excellent!","Good job!"])+` (+${p})`;$('#nx').innerHTML=nextBtn();return}
+ G.t++;fb.className='fb no';const heard=`I heard: “${list[0]}”. `;
+ if(G.t==1)fb.textContent=heard+"Almost, try again.";
+ else if(G.t==2)fb.textContent=heard+G.g.hint;
+ else{G.pts+=10;fb.textContent=`Here is the question: “${it.a.charAt(0).toUpperCase()+it.a.slice(1)}?”`+' (+10)';$('#nx').innerHTML=nextBtn()}}
+
 intro();
 </script></body></html>
