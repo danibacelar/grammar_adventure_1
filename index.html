@@ -70,6 +70,8 @@ input[type=text]{width:100%;max-width:560px;font:inherit;font-size:1.2rem;paddin
 .cues img{display:block;object-fit:contain}
 .cue-emoji{height:clamp(60px,18vw,100px);width:auto}
 .cue-food{height:clamp(90px,28vw,150px);width:auto}
+.objs{display:flex;gap:16px;align-items:center;justify-content:center;flex-wrap:wrap}
+.obj-img{display:block;object-fit:contain;height:clamp(90px,28vw,150px);width:auto}
 .bagwrap{position:relative;display:inline-block;line-height:0;max-width:100%}.bagwrap img{max-width:100%;max-height:44vh;border:0;border-radius:0;filter:drop-shadow(0 6px 8px #0003)}
 .arw{position:absolute;width:max(30px,9%);transform:translate(-50%,-100%);animation:bob 1s ease-in-out infinite;filter:drop-shadow(0 2px 2px #0005)}
 @keyframes bob{50%{margin-top:-9px}}
@@ -98,6 +100,8 @@ const ASSETS={
 /* ============ FOOD IMAGES: one transparent-background PNG per food/mood in assets/foods/ ============ */
 const FOOD_IMG={"cake":"cake","apple":"apple","banana":"banana","egg":"egg","milkshake":"milkshake","strawberry":"strawberry","strawberry milkshake":"strawberry-milkshake","chicken":"chicken","rice":"rice","beans":"beans","tea":"tea","French fries":"french-fries","ice cream":"ice-cream","pizza":"pizza","sandwich":"sandwich","chocolate":"chocolate"};
 const MOOD_IMG={like:"mood-like",love:"mood-love",dont:"mood-dont"};
+/* ============ OBJECT IMAGES: one transparent-background PNG per object in assets/objects/ (cut from objects.png) ============ */
+const OBJ_IMG={"pen":"pen","pencil~case":"pencil-case","tablet":"tablet","mobile~phone":"phone","camera":"camera","book":"book"};
 /* ============ BEDROOM ANSWER KEY: edit to match the real bedroom picture (1 = visible, 0 = not) ============ */
 const BEDROOM=[["a bed",1],["an armchair",1],["books",1],["a window",1],["a teddy bear",1],["a rug",1],["trainers",1],["a stereo",0],
 ["a TV",0],["a piano",0],["a bike",0],["a guitar",0],["a computer",0],["a blue wall",0],["a dog",0],["a sofa",0]];
@@ -131,7 +135,8 @@ const GAMES=[
 {id:1,name:"Food Adventure",sub:"I like cakes.",kind:'build',inst:"Look at the emoji. Build the sentence. Some words are extra!",hint:"Try again. Check the emoji. Do we need a/an before this food?",ok:"Yes! The extra words stay outside: no a/an here.",shuf:1,
  items:()=>FD.map(([f,n,m])=>{const v=m=='dont'?["don't","like"]:[m];return{w:["I",...v,n],d:[/^[aeiou]/i.test(f)?'an':'a',...["like","love","don't"].filter(x=>!v.includes(x))],food:f,name:f,mood:m}})},
 {id:2,name:"Object Builder",sub:"I have got a book.",kind:'build',img:'objects',inst:"Build the sentence with have got.",hint:"Check the order: I have got + a + object. Use a for each object.",ok:"Great! Here we DO use a: I have got a book.",
- items:()=>rows([["I have got a pen"],["I have got a pencil~case"],["I haven't got a tablet"],["I have got a mobile~phone"],["I have got a camera and a mobile~phone"],["I have got a book, a pen and a pencil~case"],["I haven't got a ruler, a rubber and a tablet"]])},
+ items:()=>rows([["I have got a pen"],["I have got a pencil~case"],["I haven't got a tablet"],["I have got a mobile~phone"],["I have got a camera and a mobile~phone"],["I have got a book, a pen and a pencil~case"],["I haven't got a ruler, a rubber and a tablet"]])
+  .map(it=>({...it, objs:it.w.map(t=>OBJ_IMG[t.replace(/[,.]/g,'')]).filter(Boolean)}))},
 {id:3,name:"Bedroom Detective",sub:"Have you got a bed?",kind:'mc',img:'bedroom',inst:"Look at the bedroom. Answer the question.",n:8,shuf:1,items:()=>mcYN()},
 {id:4,name:"My School Bag",sub:"Speak English!",kind:'speak',img:'schoolBag',items:()=>[{t:["pen"]},{t:["ruler"]},{t:["book","notebook"]},{t:["pencil case","eraser"]},{t:["water bottle"]},{t:["pencils","ruler","pen"]}]},
 {id:5,name:"AND or BUT?",sub:"Join two sentences.",kind:'dnd',pre:1,n:8,shuf:1,items:()=>AB},
@@ -140,6 +145,7 @@ const GAMES=[
 const FD=[["cake","cakes","like"],["apple","apples","love"],["banana","bananas","like"],["egg","eggs","dont"],["milkshake","milkshakes","love"],["strawberry","strawberries","like"],["strawberry milkshake","strawberry~milkshakes","love"],["chicken","chicken","like"],["rice","rice","like"],["beans","beans","dont"],["tea","tea","dont"],["French fries","French~fries","love"],["ice cream","ice~cream","love"],["pizza","pizza","like"],["sandwich","sandwiches","dont"],["chocolate","chocolate","love"]];
 const MOODTXT={like:"like",love:"love",dont:"don't like"};
 function cues(it){return `<div class="cues"><img class="cue-emoji" src="assets/foods/${MOOD_IMG[it.mood]}.png" alt="${MOODTXT[it.mood]}"><img class="cue-food" src="assets/foods/${FOOD_IMG[it.food]}.png" alt="${it.food}"></div>`}
+function objImgs(objs){return `<div class="objs">${objs.map(o=>`<img class="obj-img" src="assets/objects/${o}.png" alt="">`).join('')}</div>`}
 let G,B;
 function intro(){G=null;app.innerHTML=`<div class="intro"><img src="${ASSETS.introduction}" alt="Grammar Adventure 1"><div class="go"><button class="btn big" onclick="menu()">PLAY</button></div></div>`}
 function menu(){G=null;app.innerHTML=`<div class="menu-bg"></div><div class="wrap"><div class="mh"><h1>Choose your adventure</h1><button class="ghost" onclick="intro()">Home</button></div><div class="grid">${GAMES.map(g=>{const m=mem[g.id];return `<button class="card c${g.id}" onclick="start(${g.id})"><span class="num">${g.id==6?'★':g.id}</span><b>${g.name}</b><em>${g.sub}</em><span class="st">${stars(m?m.s:0)}</span>${m?`<em>Best: ${m.b}</em>`:''}</button>`}).join('')}</div></div>`}
@@ -157,7 +163,7 @@ function sBuild(it){const w=it.w,tiles=sh([...w,...it.d]);if(tiles.join()==w.joi
 function rB(msg='',cls='',mc=''){const it=B.it,tl=id=>`<button class="tile ${B.ok&&!B.p.includes(id)?'unused':''}" draggable="true" ondragstart="event.dataTransfer.setData('text',${id})" ondragover="event.preventDefault()" ondrop="dp(event,${id})" onclick="tap(${id})">${T(B.t[id].t)}</button>`;
 const sl=B.p.length?B.p.map(tl).join(''):'<span class="hintx">Tap or drag words here</span>',bk=B.t.filter(x=>!B.p.includes(x.id)).map(x=>tl(x.id)).join(''),rw=B.ok?nextBtn():`<button class="ghost" onclick="B.p=[];rB()">Reset</button><button class="btn" onclick="chk()">Check</button>`;
 if(B.fresh){B.fresh=0;
-frame(`<h2>${it.p?'Now make the question.':G.g.inst}</h2>${it.food?cues(it):G.g.img?img(G.g.img,'small'):''}${it.p?`<div class="prompt">${it.p}</div>`:''}
+frame(`<h2>${it.p?'Now make the question.':G.g.inst}</h2>${it.food?cues(it):it.objs?objImgs(it.objs):G.g.img?img(G.g.img,'small'):''}${it.p?`<div class="prompt">${it.p}</div>`:''}
 <div id="slots" class="slots" ondragover="event.preventDefault()" ondrop="dp(event,-1)"></div><div id="bank" class="bank" ondragover="event.preventDefault()" ondrop="dp(event,-2)"></div><div id="fb" class="fb" role="status"></div><div class="row" id="rw"></div>`)}
 const s=$('#slots');s.className='slots';void s.offsetWidth;s.className='slots '+cls;s.innerHTML=sl;$('#bank').innerHTML=bk;const f=$('#fb');f.className='fb '+mc;f.textContent=msg;$('#rw').innerHTML=rw;$('.score').textContent='★ '+G.pts}
 function tap(id){if(B.ok)return;const i=B.p.indexOf(id);i<0?B.p.push(id):B.p.splice(i,1);rB()}
