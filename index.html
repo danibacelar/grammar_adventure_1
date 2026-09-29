@@ -95,7 +95,8 @@ const ASSETS={
   bedroom:"assets/bedroom.jpg",
   schoolBag:"assets/school-bag.png",
   backpackAudio:"assets/backpack-question.mp3",   // your recording of: What have you got in your backpack?
-  menuBg:"assets/after introduction.jpeg"
+  menuBg:"assets/after introduction.jpeg",
+  bonusLabAudio:"assets/bonuslab_audio.mp3"   // two spoken clips back to back, separated by a ~1s pause: [0-3.9s] monkey, [5.15s-end] camera
 };
 /* ============ FOOD IMAGES: one transparent-background PNG per food/mood in assets/foods/ ============ */
 const FOOD_IMG={"cake":"cake","apple":"apple","banana":"banana","egg":"egg","milkshake":"milkshake","strawberry":"strawberry","strawberry milkshake":"strawberry-milkshake","chicken":"chicken","rice":"rice","beans":"beans","tea":"tea","French fries":"french-fries","ice cream":"ice-cream","pizza":"pizza","sandwich":"sandwich","chocolate":"chocolate"};
@@ -129,7 +130,7 @@ const AB=[["I've got a book.","I've got a pen.",0,"I've got a book and a pen."],
 const QB=[["Yes, it has. The hippo has got a big head.","Has the hippo got a~big~head ?"],["No, it hasn't. The snake hasn't got a long tail.","Has the snake got a~long~tail ?"],
 ["Yes, it has. The alligator has got sharp teeth.","Has the alligator got sharp~teeth ?"],["I've got a white T-shirt.","Have you got a~white~T-shirt ?"]]
 .map(r=>({k:'build',p:r[0],w:r[1].split(' '),d:[]}));
-const QT=[{k:'sayq',p:"No, it hasn't. The monkey hasn't got long legs.",a:"has the monkey got long legs"},{k:'sayq',p:"I've got a camera.",a:"have you got a camera"}];
+const QT=[{k:'sayq',p:"No, it hasn't. The monkey hasn't got long legs.",a:"has the monkey got long legs",aud:[0,3.9]},{k:'sayq',p:"I've got a camera.",a:"have you got a camera",aud:[5.15,6.8]}];
 
 const GAMES=[
 {id:1,name:"Food Adventure",sub:"I like cakes.",kind:'build',inst:"Look at the emoji. Build the sentence. Some words are extra!",hint:"Try again. Check the emoji. Do we need a/an before this food?",ok:"Yes! The extra words stay outside: no a/an here.",shuf:1,
@@ -219,7 +220,12 @@ function attempt(list){if(G.t>=3||$('#nx').innerHTML)return;const it=G.items[G.i
 
 /* ---- Bonus: Question Lab - say the question (same speech logic/style as Game 4) ---- */
 const nzq=s=>nz(s.replace(/i['’]ve/gi,'i have').replace(/\bive\b/gi,'i have'));
+let bonusCtx=null,bonusBuf=null,bonusBufP=null;
+function playClip(start,end){if(!bonusCtx)bonusCtx=new(window.AudioContext||window.webkitAudioContext)();bonusCtx.resume();
+ if(!bonusBufP)bonusBufP=fetch(ASSETS.bonusLabAudio).then(r=>r.arrayBuffer()).then(b=>bonusCtx.decodeAudioData(b)).then(buf=>bonusBuf=buf);
+ bonusBufP.then(()=>{const src=bonusCtx.createBufferSource();src.buffer=bonusBuf;src.connect(bonusCtx.destination);src.start(0,start,end-start)}).catch(()=>{})}
 function sSpeakQ(it){G.kbd=G.kbd||!SR;frame(`<h2>Now say the question.</h2><div class="prompt">${it.p}</div>
+${it.aud?`<div class="row"><button class="ghost" onclick="playClip(${it.aud[0]},${it.aud[1]})">Listen</button></div>`:''}
 ${G.kbd?`${SR?'':'<div class="fb">Speech practice needs a compatible browser like Chrome or Edge. You can type your answer instead.</div>'}<input type="text" id="ti" autocomplete="off" placeholder="Type your question…" onkeydown="if(event.key==='Enter')typedQ()"><button class="btn" onclick="typedQ()">Check</button>`:`<button class="mic" id="mic" onclick="listenQ()" aria-label="Speak">🎤</button><div class="hintx">Tap the microphone and say the question.</div><button class="ghost" onclick="G.kbd=1;sSpeakQ(G.items[G.i])">Type instead</button>`}
 <div class="fb" id="fb" role="status"></div><div class="row" id="nx"></div>`)}
 function listenQ(){const r=new SR();r.lang='en-US';r.maxAlternatives=3;const m=$('#mic');m.classList.add('on');$('#fb').className='fb';$('#fb').textContent='Listening…';
