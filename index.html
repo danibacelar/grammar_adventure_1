@@ -24,9 +24,10 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--org);outline-of
 @keyframes pulse{50%{transform:scale(1.05)}}
 .ghost{border:2px solid var(--line);border-radius:999px;padding:.4em 1em;background:var(--card)}
 .mh{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.mh h1{margin:.3em 0;font-size:clamp(1.5rem,5vw,2.2rem)}
+.mh h1{margin:.3em 0;font-size:clamp(1.5rem,5vw,2.2rem);color:#fff;font-weight:700;text-shadow:0 2px 0 rgba(14,77,87,.6),0 3px 10px rgba(0,0,0,.4),0 1px 2px rgba(0,0,0,.5)}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:14px;margin-top:10px}
 .card{text-align:left;background:var(--card);border:2px solid var(--line);border-radius:22px;padding:16px;display:grid;gap:4px;box-shadow:0 6px 0 var(--line);transition:transform .15s}
+.grid .card{background:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.65);box-shadow:0 6px 20px rgba(14,77,87,.3);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .card:hover{transform:translateY(-3px)}
 .card b{font-size:1.3rem}.card em{font-style:normal;opacity:.75}
 .num{width:2.2em;height:2.2em;border-radius:50%;display:grid;place-items:center;color:#fff;font-family:Fredoka,Nunito,system-ui,sans-serif;background:var(--teal)}
