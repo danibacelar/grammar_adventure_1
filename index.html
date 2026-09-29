@@ -83,7 +83,7 @@ button.tile,.opt,.btn,.ghost,.mic{touch-action:manipulation;-webkit-tap-highligh
 /* ============ ASSETS: edit these paths when the other images are uploaded ============ */
 const ASSETS={
   introduction:"assets/introduction.jpg",          // embedded so the opening screen works anywhere
-  foods:"assets/foods.png",
+  foods:"assets/foods.jpeg",
   objects:"assets/objects.png",
   bedroom:"assets/bedroom.jpg",
   schoolBag:"assets/school-bag.png",
@@ -91,9 +91,9 @@ const ASSETS={
 };
 /* ============ FOODS GRID: how the foods image is cut into pictures ============
    cols/rows = size of the grid. [col,row] starts at 0 (top-left). Edit these once the real image is checked. */
-const FOODS={cols:4,rows:4,
- cell:{"cake":[0,0],"apple":[1,0],"banana":[2,0],"egg":[3,0],"milkshake":[0,1],"strawberry":[1,1],"strawberry milkshake":[2,1],"chicken":[3,1],"rice":[0,2],"beans":[1,2],"tea":[2,2],"French fries":[3,2],"ice cream":[0,3],"pizza":[1,3],"sandwich":[2,3],"chocolate":[3,3]},
- mood:{like:null,love:null,dont:null}};   // [col,row] of the emoji for: I like / I love / I don't like (null = text chip for now)
+const FOODS={cols:5,rows:4,
+ cell:{"cake":[0,0],"apple":[1,0],"banana":[2,0],"egg":[3,0],"milkshake":[4,0],"strawberry":[0,1],"strawberry milkshake":[1,1],"chicken":[2,1],"rice":[3,1],"beans":[4,1],"tea":[0,2],"French fries":[1,2],"ice cream":[2,2],"pizza":[3,2],"sandwich":[4,2],"chocolate":[0,3]},
+ mood:{like:[1,3],love:[2,3],dont:[4,3]}};   // [col,row] of the emoji for: I like / I love / I don't like
 /* ============ BEDROOM ANSWER KEY: edit to match the real bedroom picture (1 = visible, 0 = not) ============ */
 const BEDROOM=[["a bed",1],["an armchair",1],["books",1],["a window",1],["a teddy bear",1],["a rug",1],["trainers",1],["a stereo",0],
 ["a TV",0],["a piano",0],["a bike",0],["a guitar",0],["a computer",0],["a blue wall",0],["a dog",0],["a sofa",0]];
@@ -128,7 +128,7 @@ const GAMES=[
 {id:2,name:"Object Builder",sub:"I have got a book.",kind:'build',img:'objects',inst:"Build the sentence with have got.",hint:"Check the order: I have got + a + object. Use a for each object.",ok:"Great! Here we DO use a: I have got a book.",
  items:()=>rows([["I have got a pen"],["I have got a pencil~case"],["I haven't got a tablet"],["I have got a mobile~phone"],["I have got a camera and a mobile~phone"],["I have got a book, a pen and a pencil~case"],["I haven't got a ruler, a rubber and a tablet"]])},
 {id:3,name:"Bedroom Detective",sub:"Have you got a bed?",kind:'mc',img:'bedroom',inst:"Look at the bedroom. Answer the question.",n:8,shuf:1,items:()=>mcYN()},
-{id:4,name:"My School Bag",sub:"Speak English!",kind:'speak',img:'schoolBag',items:()=>[{t:["pen"]},{t:["ruler"]},{t:["book","notebook"]},{t:["pencil case","eraser"]},{t:["lunchbox","water bottle"]},{t:["pencils","ruler","pen"]}]},
+{id:4,name:"My School Bag",sub:"Speak English!",kind:'speak',img:'schoolBag',items:()=>[{t:["pen"]},{t:["ruler"]},{t:["book","notebook"]},{t:["pencil case","eraser"]},{t:["water bottle"]},{t:["pencils","ruler","pen"]}]},
 {id:5,name:"AND or BUT?",sub:"Join two sentences.",kind:'dnd',pre:1,n:8,shuf:1,items:()=>AB},
 {id:6,name:"Bonus: Question Lab",sub:"Has the hippo got…?",kind:'mix',hint:"Remember: Has + animal + got…? / Have + you + got…?",ok:"Perfect question!",items:()=>[...QB,...QT]}];
 
@@ -182,13 +182,13 @@ function ckT(){const it=G.items[G.i];if(nz($('#ti').value)==it.a){award();$('#fb
 
 /* ---- speaking ---- */
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-const OBJ=["pencil case","notebook","book","ruler","pen","pencil","eraser","rubber","lunch ?box","water bottle","bottle"];   // vocabulary of the school bag image
+const OBJ=["pencil case","notebook","book","ruler","pen","pencil","eraser","rubber","water bottle","bottle"];   // vocabulary of the school bag image
 function playQ(){const q='What have you got in your backpack?';try{const a=new Audio(ASSETS.backpackAudio);a.onerror=()=>spk(q);a.play().catch(()=>spk(q))}catch(e){spk(q)}}
 const spk=t=>{try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='en-US';speechSynthesis.speak(u)}catch(e){}};
-const TGT={"pencil case":"pencil case","notebook":"notebook","book":"book","ruler":"ruler","pen":"pens?","pencils":"pencils?","eraser":"(eraser|rubber)s?","lunchbox":"lunch ?box","water bottle":"(water )?bottle"};
+const TGT={"pencil case":"pencil case","notebook":"notebook","book":"book","ruler":"ruler","pen":"pens?","pencils":"pencils?","eraser":"(eraser|rubber)s?","water bottle":"(water )?bottle"};
 const say=x=>x=='pencils'?x:(/^[aeiou]/.test(x)?'an ':'a ')+x;
 /* BAG: where each arrow points, in % from the left / top of the school bag image. Adjust after checking the real image. */
-const BAG={"pencil case": [50, 73], "notebook": [51, 37], "book": [41, 31], "ruler": [60, 22], "pen": [39, 58], "pencils": [45, 59], "eraser": [58, 58], "lunchbox": [67, 43], "water bottle": [76, 34]};
+const BAG={"pencil case": [50, 73], "notebook": [51, 37], "book": [41, 31], "ruler": [60, 22], "pen": [39, 58], "pencils": [45, 59], "eraser": [58, 58], "water bottle": [76, 34]};
 let BAG_OK=null;{const p=new Image();p.onload=()=>BAG_OK=1;p.onerror=()=>BAG_OK=0;p.src=ASSETS.schoolBag}
 const arrow=x=>`<span class="arw" style="left:${BAG[x][0]}%;top:${BAG[x][1]}%"><svg viewBox="0 0 40 52" width="100%"><path d="M20 50 4 26h10V4h12v22h10z" fill="#f28a3c" stroke="#fff" stroke-width="3" stroke-linejoin="round"/></svg></span>`;
 const bag=it=>`<div class="art big"><div class="bagwrap"><img src="${ASSETS.schoolBag}" alt="" onerror="miss(this,'${ASSETS.schoolBag}')">${BAG_OK===0?'':it.t.map(arrow).join('')}</div></div>`;
