@@ -15,6 +15,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 button:focus-visible,input:focus-visible{outline:3px solid var(--org);outline-offset:2px}
 .wrap{max-width:980px;margin:auto;padding:14px}
 .intro{position:fixed;inset:0;overflow:hidden;background:#3a9aa6}
+.menu-bg{position:fixed;inset:0;z-index:-1;background-image:var(--menu-bg-img);background-size:cover;background-position:center;background-repeat:no-repeat}
 .intro img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 35%}
 .intro .go{position:absolute;left:0;right:0;bottom:max(4vh,env(safe-area-inset-bottom,0px));display:flex;justify-content:center}
 .btn{background:var(--org);color:#fff;border-radius:999px;padding:.7em 1.8em;font-size:1.25rem;box-shadow:0 5px 0 #b95f1b;transition:transform .12s}
@@ -87,7 +88,8 @@ const ASSETS={
   objects:"assets/objects.png",
   bedroom:"assets/bedroom.jpg",
   schoolBag:"assets/school-bag.png",
-  backpackAudio:"assets/backpack-question.mp3"   // your recording of: What have you got in your backpack?
+  backpackAudio:"assets/backpack-question.mp3",   // your recording of: What have you got in your backpack?
+  menuBg:"assets/after introduction.jpeg"
 };
 /* ============ FOODS GRID: how the foods image is cut into pictures ============
    cols/rows = size of the grid. [col,row] starts at 0 (top-left). Edit these once the real image is checked. */
@@ -104,6 +106,7 @@ const T=s=>s.replace(/~/g,' '),pick=a=>a[Math.random()*a.length|0];
 let mem={};try{mem=JSON.parse(localStorage.getItem('ga1')||'{}')}catch(e){}
 const save=()=>{try{localStorage.setItem('ga1',JSON.stringify(mem))}catch(e){}};
 document.documentElement.style.setProperty('--intro',`url(${ASSETS.introduction})`);
+document.documentElement.style.setProperty('--menu-bg-img',`url("${ASSETS.menuBg}")`);
 const stars=n=>'★'.repeat(n)+'☆'.repeat(3-n);
 const img=(k,c='')=>`<div class="art ${c}"><img src="${ASSETS[k]}" alt="" onerror="miss(this,'${ASSETS[k]}')"></div>`;
 function miss(el,p){(el.closest('.art')||el.parentNode).innerHTML=`<div class="ph">Image not added yet.<br>Put it at <b>${p}</b></div>`}
@@ -140,7 +143,7 @@ function cues(it){if(FOODS_OK!==1)return `<div class="ph">Foods image not added 
  const m=FOODS.mood[it.mood];return `<div class="cues">${spr(FOODS.cell[it.food],'clamp(90px,28vw,150px)')}${m?spr(m,'clamp(60px,18vw,100px)'):`<span class="tag">${MOODTXT[it.mood]}</span>`}</div>`}
 let G,B;
 function intro(){G=null;app.innerHTML=`<div class="intro"><img src="${ASSETS.introduction}" alt="Grammar Adventure 1"><div class="go"><button class="btn big" onclick="menu()">PLAY</button></div></div>`}
-function menu(){G=null;app.innerHTML=`<div class="wrap"><div class="mh"><h1>Choose your adventure</h1><button class="ghost" onclick="intro()">Home</button></div><div class="grid">${GAMES.map(g=>{const m=mem[g.id];return `<button class="card c${g.id}" onclick="start(${g.id})"><span class="num">${g.id==6?'★':g.id}</span><b>${g.name}</b><em>${g.sub}</em><span class="st">${stars(m?m.s:0)}</span>${m?`<em>Best: ${m.b}</em>`:''}</button>`}).join('')}</div></div>`}
+function menu(){G=null;app.innerHTML=`<div class="menu-bg"></div><div class="wrap"><div class="mh"><h1>Choose your adventure</h1><button class="ghost" onclick="intro()">Home</button></div><div class="grid">${GAMES.map(g=>{const m=mem[g.id];return `<button class="card c${g.id}" onclick="start(${g.id})"><span class="num">${g.id==6?'★':g.id}</span><b>${g.name}</b><em>${g.sub}</em><span class="st">${stars(m?m.s:0)}</span>${m?`<em>Best: ${m.b}</em>`:''}</button>`}).join('')}</div></div>`}
 function start(id,skip){const g=GAMES.find(x=>x.id==id);if(g.pre&&!skip)return pre(g);let it=g.items();if(g.shuf)it=sh(it);if(g.n)it=it.slice(0,g.n);G={g,i:0,pts:0,items:it};step()}
 function pre(g){app.innerHTML=`<div class="wrap"><div class="top"><button class="ghost" onclick="menu()">← Menu</button><div class="chip">5 · ${g.name}</div></div><main class="stage"><h2>Two little words</h2><div class="opts"><div class="card c2"><b>AND</b><span>AND adds information.</span><em>I've got a book and a pen.</em></div><div class="card c5"><b>BUT</b><span>BUT shows a difference.</span><em>I like rice, but I don't like beans.</em></div></div><button class="btn" onclick="start(5,1)">Let's play</button></main></div>`}
 function frame(h){app.innerHTML=`<div class="wrap"><div class="top"><button class="ghost" onclick="menu()">← Menu</button><div class="chip">${G.g.id==6?'★':G.g.id} · ${G.g.name}</div><div class="score">★ ${G.pts}</div></div><div class="bar"><i style="width:${G.i/G.items.length*100}%"></i></div><main class="stage">${h}</main></div>`}
